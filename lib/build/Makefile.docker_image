@@ -1,14 +1,48 @@
 # Standard Makefile for Docker image
 #   created by richb@instantlinux.net 20-Apr-2017
 
-VENV=python_env
-VDIR=$(PWD)/$(VENV)
+BUILDX      = https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64
+PLATFORMS  ?= linux/amd64
+USER_LOGIN  = $(GITLAB_USER_LOGIN)
+VENV        = python_env
+VDIR        = $(PWD)/$(VENV)
+
+export IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
+export DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 
 analysis: flake8
 	  @echo "Running static analysis"
 
 test_functional:
 	@echo "Running functional verification of running image"
+
+create_image: $(HOME)/.docker/cli-plugins/docker-buildx
+	docker buildx build --tag $(REGISTRY)/$(IMAGE):$(TAG) --platform $(PLATFORMS) \
+	  --push --file Dockerfile . \
+	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
+	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
+
+promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
+	docker pull $(REGISTRY)/$(IMAGE):$(TAG)
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
+	docker push $(REGISTRY)/$(IMAGE):latest
+	docker login -u $(USER_LOGIN) -p $(DOCKER_TOKEN)
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
+	# TODO - this only pushes amd64 manifest; as of May 2020 it seems
+	#  that only "docker buildx create --push" handles multi-platform
+	#  this slows down pipeline big-time
+	# docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
+	# docker push $(USER_LOGIN)/$(IMAGE):latest
+	docker buildx build --tag $(USER_LOGIN)/$(IMAGE):$(TAG) \
+	  `[ -e hooks/add_tags ] && hooks/add_tags` \
+	  --tag $(USER_LOGIN)/$(IMAGE):latest --platform $(PLATFORMS) \
+	  --push --file Dockerfile . \
+	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
+	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
+	-if [ -x hooks/post_build ]; then sh hooks/post_build; fi
+	# TODO update dockerhub README if/when that is supported,
+	# see https://github.com/docker/hub-feedback/issues/1927
 
 flake8: test_requirements
 	@echo "Running flake8 code analysis"
@@ -26,6 +60,14 @@ test_requirements: python_env
 $(VDIR)/bin/python:
 	@echo "Creating virtual environment"
 	virtualenv --system-site-packages $(VENV)
+
+$(HOME)/.docker/cli-plugins/docker-buildx:
+	mkdir -p $(HOME)/.docker/cli-plugins/
+	wget -O $(HOME)/.docker/cli-plugins/docker-buildx $(BUILDX)
+	chmod +x $(HOME)/.docker/cli-plugins/docker-buildx
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	docker buildx create --name multibuild
+	docker buildx use multibuild
 
 clean:
 	@echo "Cleaning out generated files"
