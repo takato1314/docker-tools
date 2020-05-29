@@ -1,6 +1,5 @@
 variables:
-  REGISTRY: nexus.instantlinux.net
-  GIT_SSL_NO_VERIFY: "1"
+  IMAGE: python-wsgi
 
 stages:
   - Static Code Analysis
@@ -20,13 +19,13 @@ before_script:
 
 analysis:
   stage: Static Code Analysis
-  image: nexus.instantlinux.net/python-builder:latest
-  script: cd images/$image && make analysis
+  image: instantlinux/python-builder:latest
+  script: cd images/$IMAGE && make analysis
 
 create_image:
   stage: Create Image
   script:
-  - docker build -t $image:$TAG -f images/$image/Dockerfile images/$image
+  - docker build -t $IMAGE:$TAG -f images/$IMAGE/Dockerfile images/$IMAGE
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
 
@@ -34,23 +33,23 @@ push_image:
   stage: Push Image
   <<: *registry_login
   script:
-  - docker tag $image:$TAG $REGISTRY/$image:$TAG
-  - docker push $REGISTRY/$image:$TAG
+  - docker tag $IMAGE:$TAG $REGISTRY/$IMAGE:$TAG
+  - docker push $REGISTRY/$IMAGE:$TAG
 
 test:
   stage: Functional Tests
-  image: nexus.instantlinux.net/python-builder:latest
-  script: cd images/$image && make test_functional
+  image: instantlinux/python-builder:latest
+  script: cd images/$IMAGE && make test_functional
 
 promote_image:
   only: {refs: [master]}
   stage: Promote Image
   <<: *registry_login
   script:
-  - docker tag $image:$TAG $REGISTRY/$image:latest
-  - docker push $REGISTRY/$image:latest
+  - docker tag $IMAGE:$TAG $REGISTRY/$IMAGE:latest
+  - docker push $REGISTRY/$IMAGE:latest
 
 clean:
   stage: Clean
-  script: docker rmi $REGISTRY/$image:$TAG
+  script: docker rmi $REGISTRY/$IMAGE:$TAG
   when: always
