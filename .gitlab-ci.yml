@@ -1,5 +1,5 @@
 variables:
-  IMAGE: python-wsgi
+  IMAGE: git-pull
 
 stages:
   - Static Code Analysis
@@ -15,7 +15,9 @@ before_script:
 .registry_template: &registry_login
   before_script:
   - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
-  - docker login -u $DOCKER_LOGIN -p $CI_JOB_TOKEN $REGISTRY
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $REGISTRY
+  image: docker:19.03.8
+  services: [ "docker:dind" ]
 
 analysis:
   stage: Static Code Analysis
