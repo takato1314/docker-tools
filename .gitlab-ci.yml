@@ -32,6 +32,7 @@ create_image:
   stage: Create Image
   script:
   - export PLATFORMS=linux/amd64,linux-arm64
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multibuild
   - docker buildx use multibuild
   - docker buildx inspect --bootstrap
@@ -40,7 +41,7 @@ create_image:
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
   image: docker:19.03.8
-  services: [ "docker:dind" ]
+  services: [ { name: "docker:dind", command: ["--experimental"] } ]
 
 push_image:
   stage: Push Image
