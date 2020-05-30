@@ -2,6 +2,8 @@ variables:
   BUILDX: https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64
   DOCKER_CLI_EXPERIMENTAL: enabled
   IMAGE: git-pull
+  PLATFORMS: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+  REGISTRY: $REGISTRY_URI/$CI_PROJECT_PATH
 
 stages:
   - Static Code Analysis
@@ -10,8 +12,8 @@ stages:
   - Promote Image
   - Clean
 
-before_script:
-  - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
+# before_script:
+#  - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
 
 .registry_template: &registry_login
   before_script:
@@ -29,7 +31,6 @@ create_image:
   <<: *registry_login
   stage: Create Image
   script:
-  - export PLATFORMS=linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
   - mkdir -p $HOME/.docker/cli-plugins/
   - wget -O $HOME/.docker/cli-plugins/docker-buildx $BUILDX
   - chmod +x $HOME/.docker/cli-plugins/docker-buildx
