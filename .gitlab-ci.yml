@@ -1,4 +1,5 @@
 variables:
+  DOCKER_CLI_EXPERIMENTAL: enabled
   IMAGE: git-pull
 
 stages:
@@ -16,6 +17,9 @@ before_script:
   before_script:
   - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $REGISTRY
+  - docker buildx create --name multibuild
+  - docker buildx use multibuild
+  - docker buildx inspect --bootstrap
   image: docker:19.03.8
   services: [ "docker:dind" ]
 
@@ -27,7 +31,7 @@ analysis:
 create_image:
   stage: Create Image
   script:
-  - docker build -t $IMAGE:$TAG -f images/$IMAGE/Dockerfile images/$IMAGE
+  - docker buildx build -t $IMAGE:$TAG -f images/$IMAGE/Dockerfile images/$IMAGE
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
   image: docker:19.03.8
