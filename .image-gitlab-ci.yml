@@ -4,6 +4,7 @@ variables:
   IMAGE: {{ IMAGE }}
   PLATFORMS: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
   REGISTRY: $REGISTRY_URI/$CI_PROJECT_PATH
+  USER_LOGIN: $GITLAB_USER_LOGIN
 
 stages:
   - Static Code Analysis
@@ -46,14 +47,21 @@ test:
   script: apk add make && cd images/$IMAGE && make test_functional
 
 promote_image:
-  only: {refs: [master]}
+  # only: {refs: [master]}
   stage: Promote Image
   <<: *registry_login
   script:
+  - docker pull $REGISTRY/$IMAGE:$TAG
   - docker tag $REGISTRY/$IMAGE:$TAG $REGISTRY/$IMAGE:latest
   - docker push $REGISTRY/$IMAGE:latest
+  - docker login -u $USER_LOGIN -p $DOCKER_TOKEN
+  - docker tag $REGISTRY/$IMAGE:$TAG $USER_LOGIN/$IMAGE:$TAG
+  - docker tag $REGISTRY/$IMAGE:$TAG $USER_LOGIN/$IMAGE:latest
+  - docker push $USER_LOGIN/$IMAGE:$TAG
+  - docker push $USER_LOGIN/$IMAGE:latest
 
 clean:
   stage: Clean
   script: docker rmi $REGISTRY/$IMAGE:$TAG
   when: always
+  services: [ "docker:dind" ]
