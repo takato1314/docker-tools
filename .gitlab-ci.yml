@@ -42,8 +42,7 @@ create_image:
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
   image: docker:19.03.8
-  # services: [ { name: "docker:dind", command: ["--experimental"] } ]
-  services: [ "docker:dind" ]
+  services: [ { name: "docker:dind", command: ["--experimental"] } ]
 
 push_image:
   stage: Push Image
