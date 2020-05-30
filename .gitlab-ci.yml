@@ -31,7 +31,12 @@ analysis:
 create_image:
   stage: Create Image
   script:
-  - docker buildx build -t $IMAGE:$TAG -f images/$IMAGE/Dockerfile images/$IMAGE
+  - export PLATFORMS=linux/amd64,linux-arm64
+  - docker buildx create --name multibuild
+  - docker buildx use multibuild
+  - docker buildx inspect --bootstrap
+  - docker buildx build --tag $IMAGE:$TAG --platform $PLATFORMS
+      --file images/$IMAGE/Dockerfile images/$IMAGE
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
   image: docker:19.03.8
