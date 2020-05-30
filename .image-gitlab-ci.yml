@@ -7,7 +7,7 @@ variables:
 
 stages:
   - Static Code Analysis
-  - Images
+  - Create Image
   - Functional Tests
   - Promote Image
   - Clean
@@ -16,13 +16,18 @@ image: docker:19.03.8
 
 .registry_template: &registry_login
   before_script:
-  - source globals.sh
   - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $REGISTRY
   services: [ "docker:dind" ]
 
-.create_image_template: &create_image
+analysis:
+  stage: Static Code Analysis
+  image: instantlinux/python-builder:latest
+  script: cd images/$IMAGE && make analysis
+
+create_image:
   <<: *registry_login
+  stage: Create Image
   script:
   - mkdir -p $HOME/.docker/cli-plugins/
   - wget -O $HOME/.docker/cli-plugins/docker-buildx $BUILDX
@@ -35,16 +40,6 @@ image: docker:19.03.8
       --build-arg=VCS_REF=$CI_COMMIT_SHA
       --build-arg=BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%SZ)
   services: [ { name: "docker:dind", command: ["--experimental"] } ]
-
-analysis:
-  stage: Static Code Analysis
-  image: instantlinux/python-builder:latest
-  script: cd images/$IMAGE && make analysis
-
-git-pull:
-  <<: *create_image
-  script: export IMAGE=git-pull
-  stage: Images
 
 test:
   stage: Functional Tests

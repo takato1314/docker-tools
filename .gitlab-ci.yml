@@ -5,6 +5,8 @@ stages:
   - prepare
   - images
 
+image: docker:19.03.8
+
 prepare:
   stage: prepare
   script:
@@ -25,4 +27,3 @@ git-pull:
     include:
     - artifact: .child-git-pull.yml
       job: prepare
-      
