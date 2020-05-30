@@ -10,6 +10,26 @@ analysis: flake8
 test_functional:
 	@echo "Running functional verification of running image"
 
+promote_image:
+	docker pull $(REGISTRY)/$(IMAGE):$(TAG)
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
+	docker push $(REGISTRY)/$(IMAGE):latest
+	docker login -u $(USER_LOGIN) -p $DOCKER_TOKEN
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
+	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
+	docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
+	docker push $(USER_LOGIN)/$(IMAGE):latest
+	IMAGE_NAME=$(REGISTRY)/$(IMAGE):$(TAG) \
+	  DOCKER_REPO=$(USER_LOGIN)/$(IMAGE) \
+	  [ -x images/$(IMAGE)/hooks/post_build ] && ./images/$(IMAGE)/hooks/post_build && \
+	  [ -x images/$(IMAGE)/hooks/post_push ] && ./images/$(IMAGE)/hooks/post_push
+	TOKEN=$(curl -s -H "Content-Type: application/json" -X POST \
+	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
+	  https://hub.docker.com/v2/users/login/ | jq -r .token)
+	curl -H "Authorization: JWT ${TOKEN}" -X PATCH --data-urlencode \
+	  full_description@.images/$(IMAGE)/README.md \
+	  https://hub.docker.com/v2/repositories/$(USER_LOGIN)/$(IMAGE)
+
 flake8: test_requirements
 	@echo "Running flake8 code analysis"
 	(. $(VDIR)/bin/activate ; flake8 --exclude=python_env .)
