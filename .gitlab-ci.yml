@@ -1,6 +1,3 @@
-variables:
-  IMAGES: git-pull git-dump
-
 stages:
   - prepare
   - images
@@ -10,6 +7,7 @@ image: docker:19.03.8
 prepare:
   stage: prepare
   script:
+  - IMAGES=$(find images -maxdepth 1 -exec basename {} \;)
   - for IMG in $IMAGES; do sed -e "s/{{ IMAGE }}/$IMG/" .image-gitlab-ci.yml  > .child-$IMG.yml; done
   artifacts:
     paths: [ .child-*.yml ]
