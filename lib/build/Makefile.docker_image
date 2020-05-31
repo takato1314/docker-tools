@@ -2,12 +2,13 @@
 #   created by richb@instantlinux.net 20-Apr-2017
 
 BUILDX      = https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64
-IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
-DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 PLATFORMS  ?= linux/amd64
 USER_LOGIN  = $(GITLAB_USER_LOGIN)
 VENV        = python_env
 VDIR        = $(PWD)/$(VENV)
+
+export IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
+export DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 
 analysis: flake8
 	  @echo "Running static analysis"
