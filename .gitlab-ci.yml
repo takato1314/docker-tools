@@ -42,3 +42,19 @@ git-pull:
 
   # only:
   #   changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
+
+python-builder:
+  stage: images
+  trigger:
+    include:
+    - artifact: .child-python-builder.yml
+      job: prepare
+    strategy: depend
+
+python-wsgi:
+  stage: images
+  trigger:
+    include:
+    - artifact: .child-python-wsgi.yml
+      job: prepare
+    strategy: depend
