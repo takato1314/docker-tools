@@ -29,7 +29,6 @@ git-dump:
     include:
     - artifact: .child-git-dump.yml
       job: prepare
-    strategy: depend
 
 git-pull:
   stage: images

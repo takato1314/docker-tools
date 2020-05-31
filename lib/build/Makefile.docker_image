@@ -24,7 +24,7 @@ create_image:
 	docker buildx create --name multibuild
 	docker buildx use multibuild
 	docker buildx build --tag $(REGISTRY)/$(IMAGE):$(TAG) --platform $(PLATFORMS) \
-	  --push --file images/$(IMAGE)/Dockerfile images/$(IMAGE) \
+	  --push --file Dockerfile images/$(IMAGE) \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
 	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
 
@@ -42,7 +42,7 @@ promote_image:
 	# docker push $(USER_LOGIN)/$(IMAGE):latest
 	docker buildx build --tag $(USER_LOGIN)/$(IMAGE):$(TAG) \
 	  --tag $(USER_LOGIN)/$(IMAGE):latest --platform $(PLATFORMS) \
-	  --push --file images/$(IMAGE)/Dockerfile images/$(IMAGE) \
+	  --push --file Dockerfile images/$(IMAGE) \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
 	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
 	if [ -x hooks/post_push ]; then sh -x hooks/post_push; fi
@@ -51,7 +51,7 @@ promote_image:
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
 	  https://hub.docker.com/v2/users/login/ | jq -r .token))
 	curl -H "Authorization: JWT $(TOKEN)" -X PATCH --data-urlencode \
-	  full_description@.images/$(IMAGE)/README.md \
+	  full_description@README.md \
 	  https://hub.docker.com/v2/repositories/$(USER_LOGIN)/$(IMAGE)
 
 flake8: test_requirements
