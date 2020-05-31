@@ -35,10 +35,18 @@ promote_image:
 	docker login -u $(USER_LOGIN) -p $(DOCKER_TOKEN)
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
-	docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
-	docker push $(USER_LOGIN)/$(IMAGE):latest
-	-if [ -x hooks/post_build ]; then hooks/post_build; fi
+	# TODO - this only pushes amd64 manifest; as of May 2020 it seems
+	#  that only "docker buildx create --push" handles multi-platform
+	#  this slows down pipeline big-time
+	# docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
+	# docker push $(USER_LOGIN)/$(IMAGE):latest
+	docker buildx build --tag $(USER_LOGIN)/$(IMAGE):$(TAG) \
+	  --tag $(USER_LOGIN)/$(IMAGE):latest --platform $(PLATFORMS) \
+	  --push --file images/$(IMAGE)/Dockerfile images/$(IMAGE) \
+	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
+	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
 	if [ -x hooks/post_push ]; then sh -x hooks/post_push; fi
+	-if [ -x hooks/post_build ]; then ./hooks/post_build; fi
 	$(eval TOKEN=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
 	  https://hub.docker.com/v2/users/login/ | jq -r .token))
