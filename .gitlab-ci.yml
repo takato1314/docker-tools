@@ -30,7 +30,7 @@ git-dump:
     - artifact: .child-git-dump.yml
       job: prepare
   only:
-    changes: [ images/git-dump/**, lib/**, .image-gitlab-ci.yaml ]
+    changes: [ images/git-dump/**, lib/**, .image-gitlab-ci.yml ]
 
 git-pull:
   stage: images
@@ -40,4 +40,4 @@ git-pull:
       job: prepare
     strategy: depend
   only:
-    changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yaml ]
+    changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
