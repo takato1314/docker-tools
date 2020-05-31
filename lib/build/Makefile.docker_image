@@ -36,11 +36,11 @@ promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
 	# docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
 	# docker push $(USER_LOGIN)/$(IMAGE):latest
 	docker buildx build --tag $(USER_LOGIN)/$(IMAGE):$(TAG) \
+	  `[ -x hooks/add_tags && hooks/add_tags]` \
 	  --tag $(USER_LOGIN)/$(IMAGE):latest --platform $(PLATFORMS) \
 	  --push --file Dockerfile . \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
 	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
-	if [ -x hooks/post_push ]; then sh hooks/post_push; fi
 	-if [ -x hooks/post_build ]; then sh hooks/post_build; fi
 	jwt=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
