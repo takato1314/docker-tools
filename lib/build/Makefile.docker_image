@@ -21,6 +21,7 @@ promote_image:
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
 	docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
 	docker push $(USER_LOGIN)/$(IMAGE):latest
+	pwd && ls -lR images/$(IMAGE)
 	-if [ -x images/$(IMAGE)/hooks/post_build ]; then \
 	  ./images/$(IMAGE)/hooks/post_build; fi
 	if [ -x images/$(IMAGE)/hooks/post_push ]; then \
