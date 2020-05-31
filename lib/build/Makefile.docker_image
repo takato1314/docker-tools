@@ -39,8 +39,8 @@ promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
 	  --push --file Dockerfile . \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
 	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
-	if [ -x hooks/post_push ]; then sh -x hooks/post_push; fi
-	-if [ -x hooks/post_build ]; then ./hooks/post_build; fi
+	if [ -x hooks/post_push ]; then sh hooks/post_push; fi
+	-if [ -x hooks/post_build ]; then sh hooks/post_build; fi
 	$(eval TOKEN=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
 	  https://hub.docker.com/v2/users/login/ | jq -r .token))

@@ -18,9 +18,9 @@ prepare:
     paths: [ .child-*.yml ]
 
 # TODO: this is an egregious case of non-DRY code. Each could be
-# reduced from 6 lines to 2 if the artifact could be specified as
-# .child-$CI_JOB_NAME.yml. But that is not possible until a 2017
-# feature request is eventually implemented:
+# reduced to 2 lines by variable interpolation -- for example, the
+# artifact could be specified as .child-$CI_JOB_NAME.yml. But that is
+# not possible until a 2017 feature request is eventually implemented:
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1809
 
 git-dump:
@@ -29,6 +29,8 @@ git-dump:
     include:
     - artifact: .child-git-dump.yml
       job: prepare
+  only:
+    changes: [ images/git-dump/**, lib/**, .image-gitlab-ci.yaml ]
 
 git-pull:
   stage: images
@@ -37,3 +39,5 @@ git-pull:
     - artifact: .child-git-pull.yml
       job: prepare
     strategy: depend
+  only:
+    changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yaml ]

@@ -42,6 +42,10 @@ promote_image:
 
 clean:
   stage: Clean
-  script: docker rmi $REGISTRY/$IMAGE:$TAG
+  script:
+  - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
+  - docker rmi $REGISTRY/$IMAGE:$TAG
   when: always
+  except:
+    variables: [ $REGISTRY == "registry.gitlab.com" ]
   services: [ "docker:dind" ]
