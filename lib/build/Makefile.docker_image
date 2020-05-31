@@ -44,7 +44,7 @@ promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
 	-if [ -x hooks/post_build ]; then sh hooks/post_build; fi
 	jwt=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
-	  https://hub.docker.com/v2/users/login/ | jq -r .token)) \
+	  https://hub.docker.com/v2/users/login/ | jq -r .token) \
 	curl -H "Authorization: JWT ${DOL}jwt" -X PATCH --data-urlencode \
 	  full_description@README.md \
 	  https://hub.docker.com/v2/repositories/$(USER_LOGIN)/$(IMAGE)
