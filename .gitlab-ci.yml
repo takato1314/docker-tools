@@ -4,6 +4,7 @@ stages:
   - prepare
   - image1
   - images
+  - image3
 
 image: docker:19.03.8
 
@@ -44,7 +45,7 @@ git-pull:
   #   changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
 
 python-builder:
-  stage: images
+  stage: image3
   trigger:
     include:
     - artifact: .child-python-builder.yml
@@ -52,7 +53,7 @@ python-builder:
     strategy: depend
 
 python-wsgi:
-  stage: images
+  stage: image3
   trigger:
     include:
     - artifact: .child-python-wsgi.yml
