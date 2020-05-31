@@ -1,3 +1,5 @@
+# created 30-may-20 by richb@instantlinux.net
+
 stages:
   - prepare
   - images
@@ -8,7 +10,9 @@ prepare:
   stage: prepare
   script:
   - IMAGES=$(find images -maxdepth 1 -exec basename {} \;)
-  - for IMG in $IMAGES; do sed -e "s/{{ IMAGE }}/$IMG/" .image-gitlab-ci.yml  > .child-$IMG.yml; done
+  - for IMG in $IMAGES; do
+      sed -e "s/{{ IMAGE }}/$IMG/" .image-gitlab-ci.yml  > .child-$IMG.yml;
+    done
   artifacts:
     paths: [ .child-*.yml ]
 
@@ -16,12 +20,12 @@ git-dump:
   stage: images
   trigger:
     include:
-    - artifact: .child-git-dump.yml
+    - artifact: .child-$CI_JOB_NAME.yml
       job: prepare
 
 git-pull:
   stage: images
   trigger:
     include:
-    - artifact: .child-git-pull.yml
+    - artifact: .child-$CI_JOB_NAME.yml
       job: prepare
