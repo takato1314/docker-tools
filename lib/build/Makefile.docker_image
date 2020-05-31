@@ -1,8 +1,10 @@
 # Standard Makefile for Docker image
 #   created by richb@instantlinux.net 20-Apr-2017
 
-VENV=python_env
-VDIR=$(PWD)/$(VENV)
+VENV        = python_env
+VDIR        = $(PWD)/$(VENV)
+IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
+DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 
 analysis: flake8
 	  @echo "Running static analysis"
@@ -19,10 +21,8 @@ promote_image:
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
 	docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
 	docker push $(USER_LOGIN)/$(IMAGE):latest
-	IMAGE_NAME=$(REGISTRY)/$(IMAGE):$(TAG) \
-	  DOCKER_REPO=$(USER_LOGIN)/$(IMAGE) \
-	  [ -x images/$(IMAGE)/hooks/post_build ] && ./images/$(IMAGE)/hooks/post_build && \
-	  [ -x images/$(IMAGE)/hooks/post_push ] && ./images/$(IMAGE)/hooks/post_push
+	-[ -x images/$(IMAGE)/hooks/post_build ] && ./images/$(IMAGE)/hooks/post_build
+        [ -x images/$(IMAGE)/hooks/post_push ] && ./images/$(IMAGE)/hooks/post_push
 	$(eval TOKEN=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
 	  https://hub.docker.com/v2/users/login/ | jq -r .token))
