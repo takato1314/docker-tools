@@ -3,6 +3,7 @@
 stages:
   - prepare
   - images
+  - image2
 
 image: docker:19.03.8
 
@@ -30,7 +31,7 @@ git-dump:
       job: prepare
 
 git-pull:
-  stage: images
+  stage: image2
   trigger:
     include:
     - artifact: .child-git-pull.yml
