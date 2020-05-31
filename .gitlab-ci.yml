@@ -39,5 +39,6 @@ git-pull:
     - artifact: .child-git-pull.yml
       job: prepare
     strategy: depend
+
   # only:
   #   changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]

@@ -37,7 +37,7 @@ export VERSION_ETCD          ?= v3.3.13
 export VERSION_FLANNEL       ?= 0.11.0
 # held back, 12.1.4 startup gives "undefined method `[]' for nil:NilClass"
 # 3/4/20 - try 12.8.1
-export VERSION_GITLAB        ?= 11.10.1-ce.0
+export VERSION_GITLAB        ?= 13.0.1-ce.0
 export VERSION_GITLAB_RUNNER ?= 12.1.0
 export VERSION_GUACAMOLE     ?= 1.1.0
 export VERSION_INGRESS_NGINX ?= 0.26.1
