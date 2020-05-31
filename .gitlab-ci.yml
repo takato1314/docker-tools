@@ -2,8 +2,8 @@
 
 stages:
   - prepare
+  - image1
   - images
-  - image2
 
 image: docker:19.03.8
 
@@ -24,15 +24,17 @@ prepare:
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1809
 
 git-dump:
-  stage: images
+  stage: image1
   trigger:
     include:
     - artifact: .child-git-dump.yml
       job: prepare
+    strategy: depend
 
 git-pull:
-  stage: image2
+  stage: images
   trigger:
     include:
     - artifact: .child-git-pull.yml
       job: prepare
+    strategy: depend

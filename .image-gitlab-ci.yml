@@ -27,7 +27,7 @@ analysis:
 create_image:
   <<: *registry_login
   stage: Create Image
-  script: apk add make && make create_image
+  script: apk add make && cd images/$IMAGE && make create_image
   services: [ { name: "docker:dind", command: ["--experimental"] } ]
 
 test:
