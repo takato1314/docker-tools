@@ -1,16 +1,31 @@
 # Standard Makefile for Docker image
 #   created by richb@instantlinux.net 20-Apr-2017
 
-VENV        = python_env
-VDIR        = $(PWD)/$(VENV)
+BUILDX      = https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64
 IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
 DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
+PLATFORMS  ?= linux/amd64
+USER_LOGIN  = $(GITLAB_USER_LOGIN)
+VENV        = python_env
+VDIR        = $(PWD)/$(VENV)
 
 analysis: flake8
 	  @echo "Running static analysis"
 
 test_functional:
 	@echo "Running functional verification of running image"
+
+create_image:
+	mkdir -p $(HOME)/.docker/cli-plugins/
+	wget -O $(HOME)/.docker/cli-plugins/docker-buildx $(BUILDX)
+	chmod +x $(HOME)/.docker/cli-plugins/docker-buildx
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+	docker buildx create --name multibuild
+	docker buildx use multibuild
+	docker buildx build --tag $(REGISTRY)/$(IMAGE):$(TAG) --platform $(PLATFORMS) \
+	  --push --file images/$(IMAGE)/Dockerfile images/$(IMAGE) \
+	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
+	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
 
 promote_image:
 	docker pull $(REGISTRY)/$(IMAGE):$(TAG)
