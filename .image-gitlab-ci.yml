@@ -47,5 +47,5 @@ clean:
   - docker rmi $REGISTRY/$IMAGE:$TAG
   when: always
   except:
-    variables: [ $REGISTRY == "registry.gitlab.com" ]
+    variables: [ $REGISTRY_URI == "registry.gitlab.com" ]
   services: [ "docker:dind" ]
