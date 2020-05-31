@@ -21,8 +21,10 @@ promote_image:
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
 	docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
 	docker push $(USER_LOGIN)/$(IMAGE):latest
-	-[ -x images/$(IMAGE)/hooks/post_build ] && images/$(IMAGE)/hooks/post_build
-	[ -x images/$(IMAGE)/hooks/post_push ] && sh -x images/$(IMAGE)/hooks/post_push
+	-if [ -x images/$(IMAGE)/hooks/post_build ]; then \
+	  ./images/$(IMAGE)/hooks/post_build; fi
+	if [ -x images/$(IMAGE)/hooks/post_push ]; then \
+	  sh -x images/$(IMAGE)/hooks/post_push; fi
 	$(eval TOKEN=$(shell curl -s -H "Content-Type: application/json" -X POST \
 	  -d '{"username": "'$(USER_LOGIN)'", "password": "'$(DOCKER_TOKEN)'"}' \
 	  https://hub.docker.com/v2/users/login/ | jq -r .token))
