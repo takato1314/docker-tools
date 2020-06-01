@@ -10,6 +10,11 @@ VDIR        = $(PWD)/$(VENV)
 export IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
 export DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 
+# Exceptions
+ifeq($(IMAGE),data-sync)
+  PLATFORMS = linux/amd64,linux/aarch64
+endif
+
 analysis: flake8
 	  @echo "Running static analysis"
 
