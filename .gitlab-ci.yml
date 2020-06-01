@@ -2,10 +2,16 @@
 
 stages:
   - prepare
+  - data-sync
+  - dhcpd-dns-pxe
+  - ez-ipupdate
   - git-dump
   - git-pull
+  - postfix
+  - proftpd
   - python-builder
   - python-wsgi
+  - rsyslogd
 
 image: docker:19.03.8
 
@@ -29,16 +35,46 @@ prepare:
 # without waiting for completion (strategy: depend); putting more than
 # one in a stage gives "unknown failure"
 
+data-sync:
+  stage: data-sync
+  trigger:
+    include:
+    - artifact: .child-data-sync.yml
+      job: prepare
+    # strategy: depend
+  only:
+    changes: [ images/data-sync/**, lib/**, .image-gitlab-ci.yml ]
+#    refs: [ master, tags ]
+
+ez-ipupdate:
+  stage: ez-ipupdate
+  trigger:
+    include:
+    - artifact: .child-ez-ipupdate.yml
+      job: prepare
+  only:
+    changes: [ images/ez-ipupdate/**, lib/**, .image-gitlab-ci.yml ]
+#    refs: [ master, tags ]
+
+dhcpd-dns-pxe:
+  stage: dhcpd-dns-pxe
+  trigger:
+    include:
+    - artifact: .child-dhcpd-dns-pxe.yml
+      job: prepare
+  only:
+    changes: [ images/dhcpd-dns-pxe/**, lib/**, .image-gitlab-ci.yml ]
+#    refs: [ master, tags ]
+
 git-dump:
   stage: git-dump
   trigger:
     include:
     - artifact: .child-git-dump.yml
       job: prepare
-    # strategy: depend
   only:
     changes: [ images/git-dump/**, lib/**, .image-gitlab-ci.yml ]
-    refs: [ master ]
+    refs: [ master, tags ]
 
 git-pull:
   stage: git-pull
@@ -48,7 +84,27 @@ git-pull:
       job: prepare
   only:
     changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
-    refs: [ master ]
+    refs: [ master, tags ]
+
+postfix:
+  stage: postfix
+  trigger:
+    include:
+    - artifact: .child-postfix.yml
+      job: prepare
+  only:
+    changes: [ images/postfix/**, lib/**, .image-gitlab-ci.yml ]
+#    refs: [ master, tags ]
+
+proftpd:
+  stage: proftpd
+  trigger:
+    include:
+    - artifact: .child-proftpd.yml
+      job: prepare
+  only:
+    changes: [ images/proftpd/**, lib/**, .image-gitlab-ci.yml ]
+#    refs: [ master, tags ]
 
 python-builder:
   stage: python-builder
@@ -58,7 +114,7 @@ python-builder:
       job: prepare
   only:
     changes: [ images/python-builder/**, lib/**, .image-gitlab-ci.yml ]
-    refs: [ master ]
+#    refs: [ master, tags ]
 
 python-wsgi:
   stage: python-wsgi
@@ -66,5 +122,16 @@ python-wsgi:
     include:
     - artifact: .child-python-wsgi.yml
       job: prepare
-  # only:
-  #   changes: [ images/python-wsgi/**, lib/**, .image-gitlab-ci.yml ]
+  only:
+    changes: [ images/python-wsgi/**, lib/**, .image-gitlab-ci.yml ]
+    refs: [ master, tags ]
+
+rsyslogd:
+  stage: rsyslogd
+  trigger:
+    include:
+    - artifact: .child-rsyslogd.yml
+      job: prepare
+  only:
+    changes: [ images/rsyslogd/**, lib/**, .image-gitlab-ci.yml ]
+    refs: [ master, tags ]
