@@ -2,9 +2,9 @@
 
 stages:
   - prepare
-  - git-dump
-  - git-pull
-  - python-builder
+  # - git-dump
+  # - git-pull
+  # - python-builder
   - python-wsgi
 
 image: docker:19.03.8
@@ -44,7 +44,7 @@ git-pull:
     include:
     - artifact: .child-git-pull.yml
       job: prepare
-    strategy: depend
+    # strategy: depend
   only:
     changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
 
@@ -54,7 +54,7 @@ python-builder:
     include:
     - artifact: .child-python-builder.yml
       job: prepare
-    strategy: depend
+    # strategy: depend
   only:
     changes: [ images/python-builder/**, lib/**, .image-gitlab-ci.yml ]
 
@@ -64,6 +64,6 @@ python-wsgi:
     include:
     - artifact: .child-python-wsgi.yml
       job: prepare
-    strategy: depend
+    # strategy: depend
   only:
     changes: [ images/python-wsgi/**, lib/**, .image-gitlab-ci.yml ]
