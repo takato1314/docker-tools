@@ -2,9 +2,10 @@
 
 stages:
   - prepare
-  - image1
-  - images
-  - image3
+  - git-dump
+  - git-pull
+  - python-builder
+  - python-wsgi
 
 image: docker:19.03.8
 
@@ -24,8 +25,12 @@ prepare:
 # not possible until a 2017 feature request is eventually implemented:
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1809
 
+# TODO: figure out why these have to be assigned to separate stages,
+# without waiting for completion (strategy: depend); putting more than
+# one in a stage gives "unknown failure"
+
 git-dump:
-  stage: image1
+  stage: git-dump
   trigger:
     include:
     - artifact: .child-git-dump.yml
@@ -34,28 +39,31 @@ git-dump:
     changes: [ images/git-dump/**, lib/**, .image-gitlab-ci.yml ]
 
 git-pull:
-  stage: images
+  stage: git-pull
   trigger:
     include:
     - artifact: .child-git-pull.yml
       job: prepare
     strategy: depend
-
-  # only:
-  #   changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
+  only:
+    changes: [ images/git-pull/**, lib/**, .image-gitlab-ci.yml ]
 
 python-builder:
-  stage: image3
+  stage: python-builder
   trigger:
     include:
     - artifact: .child-python-builder.yml
       job: prepare
     strategy: depend
+  only:
+    changes: [ images/python-builder/**, lib/**, .image-gitlab-ci.yml ]
 
 python-wsgi:
-  stage: image3
+  stage: python-wsgi
   trigger:
     include:
     - artifact: .child-python-wsgi.yml
       job: prepare
     strategy: depend
+  only:
+    changes: [ images/python-wsgi/**, lib/**, .image-gitlab-ci.yml ]

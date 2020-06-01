@@ -38,7 +38,7 @@ promote_image:
   # only: {refs: [master]}
   stage: Promote Image
   <<: *registry_login
-  script: apk add curl make && cd images/$IMAGE && make promote_image
+  script: apk add curl jq make && cd images/$IMAGE && make promote_image
 
 clean:
   stage: Clean
