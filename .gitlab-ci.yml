@@ -42,8 +42,8 @@ data-sync:
     - artifact: .child-data-sync.yml
       job: prepare
     # strategy: depend
-  only:
-    changes: [ images/data-sync/**, lib/**, .image-gitlab-ci.yml ]
+#  only:
+#    changes: [ images/data-sync/**, lib/**, .image-gitlab-ci.yml ]
 #    refs: [ master, tags ]
 
 ez-ipupdate:
