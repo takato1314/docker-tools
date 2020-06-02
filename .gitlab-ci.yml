@@ -41,8 +41,7 @@ data-sync:
     include:
     - artifact: .child-data-sync.yml
       job: prepare
-
-#     strategy: depend
+    strategy: depend
 #  only:
 #    changes: [ images/data-sync/**, lib/**, .image-gitlab-ci.yml ]
 #    refs: [ master, tags ]
@@ -65,7 +64,7 @@ dhcpd-dns-pxe:
       job: prepare
   only:
     changes: [ images/dhcpd-dns-pxe/**, lib/**, .image-gitlab-ci.yml ]
-#    refs: [ master, tags ]
+    refs: [ master, tags ]
 
 git-dump:
   stage: git-dump
