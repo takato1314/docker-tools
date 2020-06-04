@@ -102,8 +102,8 @@ proftpd:
     include:
     - artifact: .child-proftpd.yml
       job: prepare
-  only:
-    changes: [ images/proftpd/**, lib/**, .image-gitlab-ci.yml ]
+#  only:
+#    changes: [ images/proftpd/**, lib/**, .image-gitlab-ci.yml ]
 #    refs: [ master, tags ]
 
 python-builder:
