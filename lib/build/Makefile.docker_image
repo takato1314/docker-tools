@@ -10,6 +10,10 @@ VDIR        = $(PWD)/$(VENV)
 export IMAGE_NAME  = $(REGISTRY)/$(IMAGE):$(TAG)
 export DOCKER_REPO = $(USER_LOGIN)/$(IMAGE)
 
+ifneq ($(CI_COMMIT_TAG),)
+  TAG_OPT   = --tag $(USER_LOGIN)$(IMAGE):$(CI_COMMIT_TAG)      
+endif
+
 # Exceptions
 ifeq ($(IMAGE),data-sync)
   PLATFORMS = linux/amd64,linux/aarch64
@@ -32,15 +36,16 @@ promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
 	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
 	docker push $(REGISTRY)/$(IMAGE):latest
 	docker login -u $(USER_LOGIN) -p $(DOCKER_TOKEN)
-	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
-	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
+
 	# TODO - this only pushes amd64 manifest; as of May 2020 it seems
 	#  that only "docker buildx create --push" handles multi-platform
 	#  this slows down pipeline big-time
+	# docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
+	# docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
 	# docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
 	# docker push $(USER_LOGIN)/$(IMAGE):latest
 	docker buildx build --tag $(USER_LOGIN)/$(IMAGE):$(TAG) \
-	  `[ -e hooks/add_tags ] && hooks/add_tags` \
+	   $(TAG_OPT) `[ -e hooks/add_tags ] && hooks/add_tags` \
 	  --tag $(USER_LOGIN)/$(IMAGE):latest --platform $(PLATFORMS) \
 	  --push --file Dockerfile . \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
