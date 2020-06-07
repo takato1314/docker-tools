@@ -3,6 +3,7 @@
 
 BUILDX      = https://github.com/docker/buildx/releases/download/v0.4.1/buildx-v0.4.1.linux-amd64
 PLATFORMS  ?= linux/amd64
+PUSH       ?= --push
 USER_LOGIN  = $(GITLAB_USER_LOGIN)
 VENV        = python_env
 VDIR        = $(PWD)/$(VENV)
@@ -27,19 +28,20 @@ test_functional:
 
 create_image: $(HOME)/.docker/cli-plugins/docker-buildx
 	docker buildx build --tag $(REGISTRY)/$(IMAGE):$(TAG) --platform $(PLATFORMS) \
-	  --push --file Dockerfile . \
+	  $(PUSH) --file Dockerfile . \
 	  --build-arg=VCS_REF=$(CI_COMMIT_SHA) \
 	  --build-arg=BUILD_DATE=$(shell date +%Y-%m-%dT%H:%M:%SZ)
 
 promote_image: $(HOME)/.docker/cli-plugins/docker-buildx
-	docker pull $(REGISTRY)/$(IMAGE):$(TAG)
-	docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
-	docker push $(REGISTRY)/$(IMAGE):latest
+	# Log into dockerhub
 	docker login -u $(USER_LOGIN) -p $(DOCKER_TOKEN)
 
 	# TODO - this only pushes amd64 manifest; as of May 2020 it seems
 	#  that only "docker buildx create --push" handles multi-platform
 	#  this slows down pipeline big-time
+	# docker pull $(REGISTRY)/$(IMAGE):$(TAG)
+	# docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(REGISTRY)/$(IMAGE):latest
+	# docker push $(REGISTRY)/$(IMAGE):latest
 	# docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):$(TAG)
 	# docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(USER_LOGIN)/$(IMAGE):latest
 	# docker push $(USER_LOGIN)/$(IMAGE):$(TAG)
