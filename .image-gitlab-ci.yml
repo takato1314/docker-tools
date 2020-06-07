@@ -10,7 +10,6 @@ stages:
   - Create Image
   - Functional Tests
   - Promote Image
-  - Clean
 
 image: docker:19.03.8
 
