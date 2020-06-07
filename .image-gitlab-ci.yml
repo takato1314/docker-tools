@@ -40,12 +40,12 @@ promote_image:
   <<: *registry_login
   script: apk add curl jq make && cd images/$IMAGE && make promote_image
 
-clean:
-  stage: Clean
-  script:
-  - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
-  - docker rmi $REGISTRY/$IMAGE:$TAG
-  when: always
-  except:
-    variables: [ $REGISTRY_URI == "registry.gitlab.com" ]
-  services: [ "docker:dind" ]
+# clean:
+#   stage: Clean
+#   script:
+#   - export TAG=bld_$CI_PIPELINE_IID_${CI_COMMIT_SHA:0:7}
+#   - docker rmi $REGISTRY/$IMAGE:$TAG
+#   when: always
+#   except:
+#     variables: [ $REGISTRY_URI == "registry.gitlab.com" ]
+#   services: [ "docker:dind" ]
