@@ -6,6 +6,7 @@
 	realm = {{ REALM }}
 	server role = active directory domain controller
 	workgroup = {{ WORKGROUP }}
+	security = user
 
 	add machine script = /usr/sbin/adduser -D -H -G users -s /bin/false %u
 	allow dns updates = {{ ALLOW_DNS_UPDATES }}
@@ -14,6 +15,13 @@
 	domain master = {{ DOMAIN_MASTER }}
 	interfaces = {{ INTERFACES }}
 	log level = {{ LOG_LEVEL }}
-	winbind refresh tickets = Yes
+	winbind refresh tickets = yes
 	winbind use default domain = {{ WINBIND_USE_DEFAULT_DOMAIN }}
+	idmap_ldb:use rfc2307 = yes
+
+	# disable printing services
+	load printers = no
+	printing = bsd
+	printcap name = /dev/null
+	disable spoolss = yes
 

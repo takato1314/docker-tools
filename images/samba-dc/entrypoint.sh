@@ -5,16 +5,33 @@ if [ -z "$NETBIOS_NAME" ]; then
 else
   NETBIOS_NAME=$(echo $NETBIOS_NAME | tr [a-z] [A-Z])
 fi
-REALM=$(echo "$REALM" | tr [A-Z] [a-z])
+NAMESERVER=$(hostname -i | awk '{print $1}')
+REALM=$(echo "$REALM" | tr [a-z] [A-Z])
+WORKGROUP=$(echo $WORKGROUP | tr [a-z] [A-Z])
+HOST_NAME=$(echo $NETBIOS_NAME.$REALM | tr [A-Z] [a-z])
 
+# Configure timezone
 if [ ! -f /etc/timezone ] && [ ! -z "$TZ" ]; then
-  echo 'Set timezone'
+  echo 'Set timezone to' $TZ
   cp /usr/share/zoneinfo/$TZ /etc/localtime
   echo $TZ >/etc/timezone
 fi
 
+# Configure hosts
+echo "$NAMESERVER    $HOST_NAME $(echo $NETBIOS_NAME | tr [A-Z] [a-z])" >> /etc/hosts
+
+if [ $DOMAIN_ACTION == provision ]; then
+  # Configure DNS Resolver
+  > /etc/resolv.conf
+  echo "search $REALM" >> /etc/resolv.conf
+  echo "nameserver $NAMESERVER" >> /etc/resolv.conf
+  # Create Reverse Lookup Zone
+  # samba-tool dns zonecreate $NAMESERVER 0.99.10.in-addr.arpa
+fi
+
+# Provisioning Samba AD in Non-interactive Mode
 if [ ! -f /var/lib/samba/registry.tdb ]; then
-  ADMIN_PASSWORD=$(cat /run/secrets/$ADMIN_PASSWORD_SECRET)
+  ADMIN_PASSWORD=$(echo $ADMIN_PASSWORD)
   if [ "$BIND_INTERFACES_ONLY" == yes ]; then
     INTERFACE_OPTS="--option=\"bind interfaces only=yes\" \
       --option=\"interfaces=$INTERFACES\""
@@ -38,6 +55,8 @@ if [ ! -f /var/lib/samba/registry.tdb ]; then
   mv /etc/samba/smb.conf /etc/samba/smb.conf.bak
   echo 'root = administrator' > /etc/samba/smbusers
 fi
+
+# Configure Samba AD
 mkdir -p -m 700 /etc/samba/conf.d
 for file in /etc/samba/smb.conf /etc/samba/conf.d/netlogon.conf \
       /etc/samba/conf.d/sysvol.conf; do
@@ -48,7 +67,7 @@ for file in /etc/samba/smb.conf /etc/samba/conf.d/netlogon.conf \
       -e "s+{{ INTERFACES }}+$INTERFACES+" \
       -e "s:{{ LOG_LEVEL }}:$LOG_LEVEL:" \
       -e "s:{{ NETBIOS_NAME }}:$NETBIOS_NAME:" \
-      -e "s:{{ REALM }}:$REALM:" \
+      -e "s:{{ REALM }}:$(echo $REALM | tr [A-Z] [a-z]):" \
       -e "s:{{ SERVER_STRING }}:$SERVER_STRING:" \
       -e "s:{{ WINBIND_USE_DEFAULT_DOMAIN }}:$WINBIND_USE_DEFAULT_DOMAIN:" \
       -e "s:{{ WORKGROUP }}:$WORKGROUP:" \
@@ -57,6 +76,9 @@ done
 for file in $(ls -A /etc/samba/conf.d/*.conf); do
   echo "include = $file" >> /etc/samba/smb.conf
 done
-ln -fns /var/lib/samba/private/krb5.conf /etc/
 
+# Configure Kerberos Client
+ln -fns /var/lib/samba/private/krb5.conf /etc/krb5.conf
+
+# Start samba
 exec samba --model=$MODEL -i </dev/null
